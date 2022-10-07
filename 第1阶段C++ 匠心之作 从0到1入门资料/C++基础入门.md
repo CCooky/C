@@ -2938,9 +2938,7 @@ int main() {
 
 **案例描述：**封装一个函数，利用冒泡排序，实现对整型数组的升序排序。之前我们冒泡排序都是写在main里面，没有使用函数的，因为不使用指针的话，就只有值传递，无法修改原来数组的值
 
-例如数组：int arr[10] = { 4,3,6,9,1,2,10,8,7,5 };
-
-
+例如数组：int arr[10] = { 4,3,6,9,1,2,10,8,7,5 } ;
 
 **示例：**
 
@@ -2986,11 +2984,55 @@ int main() {
 }
 ```
 
+> 总结：当数组名传入到函数作为参数时，被退化为指向首元素的指针，无法通过size等方式获取数组长度等。
 
+**指针和数组的关系**
 
-> 总结：当数组名传入到函数作为参数时，被退化为指向首元素的指针
+数组在编译阶段会变成一个指针常量，指向数组的第一个数据地址；经常有数组即指针，指针即数组的说法，但两者在有的地方不一样，有的地方特性一样！！！
 
+```c++
+#include<iostream>
+using namespace std;
 
+//冒泡排序函数
+void bubbleSort(int * arr, int len) {
+	cout<<"" << endl;
+	cout << "2、bubbleSort()子函数：" << endl;
+	cout << "现在是：函数参数的一个指针p接收了传递过来的数组名arr" << endl;
+	cout << "依然有这种写法：arr[i] = *(arr+i)" << endl;
+	// arr[i] = *(arr+i)
+	int i = 1;
+	cout <<"形参指针 p ：\t" << arr << endl;
+	cout << "形参指针 *p ：\t" << *arr << endl;
+	cout << "形参指针 *(p+i) ：\t" << *(arr + i) << endl;
+	cout << "形参指针 p[i] ：\t" << arr[i] << endl;
+	cout << "数组指针均有：arr[i] = *(arr+i)" << endl;
+	cout << "" << endl;
+
+}
+
+int main() {
+
+	int arr[10] = { 9,8,7,6,5,4,3,2,1,0 };
+	int arr2[10] = { 9,8,7,6,5,4,3,2,1,0 };
+	int len = size(arr);
+	// int len = sizeof(arr)/sizeof(int);
+
+	cout << "1、main():" << endl;
+	cout <<"数组名arr：" << arr << endl;
+	cout <<"*arr：" << *arr << endl;
+	cout <<"arr[0]：" << arr[0] << endl;
+	cout << "从这里看出来：C++里面编译时，会把数组名arr变成一个指针常量，指向数组的第一个数据地址" << endl;
+	cout << "然后数组这边有：arr[i] = *(arr + i) 的写法" << endl;
+	//arr = arr2;  // 看到无法修改arr的值！！！
+	bubbleSort(arr, len);
+	system("pause");
+	return 0;
+
+}
+```
+
+<img src="images/image-20221007204414060.png" alt="image-20221007204414060"  />
 
 
 
