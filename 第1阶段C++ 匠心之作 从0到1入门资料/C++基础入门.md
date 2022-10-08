@@ -2986,9 +2986,11 @@ int main() {
 
 > 总结：当数组名传入到函数作为参数时，被退化为指向首元素的指针，无法通过size等方式获取数组长度等。
 
-**指针和数组的关系**
+### **7.9 指针和数组的关系**
 
 数组在编译阶段会变成一个指针常量，指向数组的第一个数据地址；经常有数组即指针，指针即数组的说法，但两者在有的地方不一样，有的地方特性一样！！！
+
+**指针和数组均有：arr[i] = *(arr+i)**
 
 ```c++
 #include<iostream>
@@ -3054,9 +3056,17 @@ int main() {
 
 通过结构体创建变量的方式有三种：
 
-* struct 结构体名 变量名
-* struct 结构体名 变量名 = { 成员1值 ， 成员2值...}
-* 定义结构体时顺便创建变量
+1. struct 结构体名 变量名	 
+
+   ​											`struct student stu1;`
+
+2. struct 结构体名 变量名 = { 成员1值 ， 成员2值...}      
+
+   ​											`struct student stu2 = { "李四",19,60 };`
+
+3. 定义结构体时顺便创建变量
+
+这个用户自定义的数据类型（就像int）就是：**struct 结构体名**，和C++自带的数据类型使用方式基本一样。
 
 **示例：**
 
@@ -3123,6 +3133,8 @@ int main() {
 
 **语法：**` struct  结构体名 数组名[元素个数] = {  {} , {} , ... {} }`
 
+​			`struct  结构体名 数组名[元素个数];`  // 后面再定义结构体数据
+
 **示例：**
 
 ```C++
@@ -3170,9 +3182,10 @@ int main() {
 
 **作用：**通过指针访问结构体中的成员
 
-
+​	   `struct student * p = &stu;`
 
 * 利用操作符 `-> `可以通过结构体指针访问结构体属性
+*  `p->name <==> (*p).name`
 
 
 
@@ -3191,7 +3204,7 @@ struct student
 
 int main() {
 	
-	struct student stu = { "张三",18,100, };
+	struct student stu = { "张三",18,100};
 	
 	struct student * p = &stu;
 	
@@ -3242,7 +3255,7 @@ struct student
 //教师结构体定义
 struct teacher
 {
-    //成员列表
+  //成员列表
 	int id; //职工编号
 	string name;  //教师姓名
 	int age;   //教师年龄
@@ -3290,7 +3303,7 @@ int main() {
 传递方式有两种：
 
 * 值传递
-* 地址传递
+* 地址传递（地址传递，指针接收）
 
 **示例：**
 
@@ -3304,8 +3317,10 @@ struct student
 	int score;    //分数
 };
 
+
+
 //值传递
-void printStudent(student stu )
+void printStudent(student stu)
 {
 	stu.age = 28;
 	cout << "子函数中 姓名：" << stu.name << " 年龄： " << stu.age  << " 分数：" << stu.score << endl;
@@ -3318,9 +3333,12 @@ void printStudent2(student *stu)
 	cout << "子函数中 姓名：" << stu->name << " 年龄： " << stu->age  << " 分数：" << stu->score << endl;
 }
 
+
+
 int main() {
 
 	student stu = { "张三",18,100};
+  
 	//值传递
 	printStudent(stu);
 	cout << "主函数中 姓名：" << stu.name << " 年龄： " << stu.age << " 分数：" << stu.score << endl;
@@ -3403,7 +3421,7 @@ int main() {
 
 最终打印出老师数据以及老师所带的学生数据。
 
-
+==数组即 “ 高级指针 ” 呐！==
 
 **示例：**
 
@@ -3413,6 +3431,7 @@ struct Student
 	string name;
 	int score;
 };
+
 struct Teacher
 {
 	string name;
@@ -3431,7 +3450,7 @@ void allocateSpace(Teacher tArray[] , int len)
 		for (int j = 0; j < 5; j++)
 		{
 			tArray[i].sArray[j].name = sName + nameSeed[j];
-			tArray[i].sArray[j].score = rand() % 61 + 40;
+			tArray[i].sArray[j].score = rand() % 61 + 40; //40-100
 		}
 	}
 }
@@ -3512,12 +3531,13 @@ struct hero
 	int age;
 	string sex;
 };
+
 //冒泡排序
 void bubbleSort(hero arr[] , int len)
 {
-	for (int i = 0; i < len - 1; i++)
+	for (int i = 0; i < len - 1; i++)//大循环——（len-1）次
 	{
-		for (int j = 0; j < len - 1 - i; j++)
+		for (int j = 0; j < len - 1 - i; j++)// 小循环【0——（len-1-i）】，里面我们是用的j+1，是和后一位进行比较，所以可以取到最后一位
 		{
 			if (arr[j].age > arr[j + 1].age)
 			{
@@ -3561,5 +3581,3 @@ int main() {
 ```
 
 
-
-# 
