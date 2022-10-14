@@ -39,8 +39,8 @@ C++程序在执行时，将内存大方向划分为**4个区域**
 
 - ​	存放 全局变量和静态变量
 
-- ​	全局区包含了常量区==（存放全局常量  和 字符串常量，不存放局部常量）==
-- ​    所以说：全局区中存放全局变量、静态变量、常量
+- ​	全局区包含了常量区（存放全局常量  和 字符串常量，不存放局部常量）
+- ​    所以说：全局区中存放**全局变量**、**静态变量**、**部分常量**
 
 ​		==该区域的数据在程序结束后由操作系统释放==.
 
@@ -1298,13 +1298,13 @@ int main() {
 
 三种调用方式：
 
-​	括号法————`Person p1(10);`
+​	括号法————`Person p1(10);`     `Person p1;`
 
 ​	显示法————`Person p2 = Person(10);` 
 
 ​	隐式转换法————`Person p4 = 10;`
 
-
+​    注意：调用无参构造函数不能加括号，如果加了编译器认为这是一个函数声明
 
 **拷贝构造：**
 
@@ -1379,7 +1379,8 @@ void test03(){
     Person ppp(199);
     // 我们调用拷贝构造函数去复制一个对象, pppcopy和ppp就一模一样
     Person pppcopy(ppp);
-    
+	  Person pppcopy2 = ppp; //拷贝构造  
+  
     //但是注意了：下面这种写法就错了
     Person(ppp);
     // 看出来了，这是在初始化一个匿名对象，是无法用拷贝构造函数初始化匿对象的，因为C++对这种写法会转换为： Person(ppp);===>>> Person ppp; 去创建一个ppp的对象，但这个ppp对象已经存在了，出现重定义错误！！！
@@ -1411,9 +1412,9 @@ int main() {
 
 C++中拷贝构造函数调用时机通常有三种情况
 
-* 使用一个已经创建完毕的对象来初始化一个新对象
-* 值传递的方式给函数参数传值
-* 以值方式返回局部对象
+* 使用一个已经创建完毕的对象来初始化一个新对象（复制克隆）
+* **值传递 的方式给函数参数传值**。也就是说我们值传递时，底层原理就是拷贝构造函数
+* **以值方式返回局部对象**。子函数返回一个局部对象的时候，main获取接收这个对象底层时拷贝构造函数的使用
 
 
 
@@ -1442,6 +1443,8 @@ public:
 	int mAge;
 };
 
+
+
 //1. 使用一个已经创建完毕的对象来初始化一个新对象
 void test01() {
 
@@ -1454,7 +1457,7 @@ void test01() {
 }
 
 //2. 值传递的方式给函数参数传值
-//相当于Person p1 = p;
+//相当于Person p1(p);
 void doWork(Person p1) {}
 void test02() {
 	Person p; //无参构造函数
@@ -1500,11 +1503,11 @@ int main() {
 
 2．默认析构函数(无参，函数体为空)
 
-3．默认拷贝构造函数，对属性进行值拷贝
+3．默认拷贝构造函数，对属性进行值拷贝（浅拷贝操作）
 
 
 
-构造函数调用规则如下：
+**构造函数调用规则如下：**
 
 * 如果用户定义有参构造函数，c++不在提供默认无参构造，但是会提供默认拷贝构造
 
@@ -1584,21 +1587,27 @@ int main() {
 
 
 
-深浅拷贝是面试经典问题，也是常见的一个坑
+深浅拷贝是面试经典问题，也是常见的一个坑。
 
 
 
-浅拷贝：简单的赋值拷贝操作
+使用时机：当类的属性出现指针的时候。浅拷贝就不行了。
 
 
 
-深拷贝：在堆区重新申请空间，进行拷贝操作
+浅拷贝：简单的赋值拷贝操作，就是=赋值操作。
 
 
 
-**示例：**
+深拷贝：在**堆区**重新申请空间，进行拷贝操作。
 
-```C++
+
+
+**浅拷贝实例：**
+
+  		就是之前写的类的属性没有指针的情况。
+
+```c++
 class Person {
 public:
 	//无参（默认）构造函数
@@ -1609,7 +1618,6 @@ public:
 	Person(int age ,int height) {
 		
 		cout << "有参构造函数!" << endl;
-
 		m_age = age;
 		m_height = new int(height);
 		
@@ -1617,24 +1625,80 @@ public:
 	//拷贝构造函数  
 	Person(const Person& p) {
 		cout << "拷贝构造函数!" << endl;
-		//如果不利用深拷贝在堆区创建新内存，会导致浅拷贝带来的重复释放堆区问题
 		m_age = p.m_age;
-		m_height = new int(*p.m_height);
-		
 	}
 
 	//析构函数
 	~Person() {
 		cout << "析构函数!" << endl;
+	}
+public:
+	int m_age;
+};
+
+
+
+void test01()
+{
+	Person p1(18);
+
+	Person p2(p1);
+
+	cout << "p1的年龄： " << p1.m_age << " 身高： " << *p1.m_height << endl;
+
+	cout << "p2的年龄： " << p2.m_age << " 身高： " << *p2.m_height << endl;
+}
+
+int main() {
+
+	test01();
+
+	system("pause");
+
+	return 0;
+}
+```
+
+
+
+**类的属性出现指针：**
+
+当类的属性出现指针的时候，还用之前的浅拷贝会出现什么问题呢，看下面的代码
+
+```C++
+class Person {
+public:
+	int m_age;
+	int* m_height;  // 1.出现指针属性了
+  
+public:
+	//无参（默认）构造函数
+	Person() {
+		cout << "无参构造函数!" << endl;
+	}
+	//有参构造函数
+	Person(int age ,int height) {
+		
+		cout << "有参构造函数!" << endl;
+		m_age = age;
+		m_height = new int(height); //2.在堆区开辟内存空间，注意要受到释放
+		
+	}
+	//编译器默认提供 浅拷贝构造函数  
+
+	//析构函数
+	~Person() {
+		cout << "析构函数!" << endl;
+    // 3.堆区的内存空间必须释放，不然出大问题！
 		if (m_height != NULL)
 		{
 			delete m_height;
 		}
 	}
-public:
-	int m_age;
-	int* m_height;
+
 };
+
+
 
 void test01()
 {
@@ -1657,11 +1721,92 @@ int main() {
 }
 ```
 
-> 总结：如果属性有在堆区开辟的，一定要自己提供拷贝构造函数，防止浅拷贝带来的问题
+**运行测试：报错**
+
+<img src="images/image-20221013232127413.png" alt="image-20221013232127413" style="zoom:80%;" />
+
+**原因在于：**
+
+在浅拷贝的时候，他就只是很单纯的值赋值，如下：
+
+<img src="images/image-20221013232248353.png" alt="image-20221013232248353" style="zoom:80%;" />
+
+因为我们有一个对象属性是指针，所以说他存放的是堆区内存空间的地址，就会直接复制到p2对象里面去，好了，现在看似没有问题，一切正常《《《《
+
+但是当我们对象被释放时出问题了，栈区是先进后出，p2先被释放，p2释放的时候执行析构函数，我们手动释放掉了`m_height`这个堆区内存空间。好了p2结束了，该p1释放了，他也执行析构函数，也去释放`m_height`这个堆区内存空间，报错！！！！！空间已经不存在了。
+
+》》》这就是浅拷贝带来的堆区内存重复释放问题。
+
+**解决问题：深拷贝**
+
+》》》利用深拷贝解决，在堆区重新申请一块内存空间，把之前内存空间的值复制过来新的。两个对象的指针属性的地址不同，内存空间存的数据相同。
+
+<img src="images/image-20221013233045290.png" alt="image-20221013233045290"  />
+
+```c++
+class Person {
+public:
+	int m_age;
+	int* m_height;  // 1.出现指针属性了
+  
+public:
+	//无参（默认）构造函数
+	Person() {
+		cout << "无参构造函数!" << endl;
+	}
+	//有参构造函数
+	Person(int age ,int height) {
+		
+		cout << "有参构造函数!" << endl;
+		m_age = age;
+		m_height = new int(height); //2.在堆区开辟内存空间，注意要受到释放
+		
+	}
+	//&&&4.自己写深拷贝构造函数
+  Person(const Person& p){
+    cout << "自己深拷贝构造函数!" << endl;
+    m_age = p.m_age;
+    // 深拷贝
+    m_height = new int(*p.m_height)
+    
+  }
+  
+  
+
+	//析构函数
+	~Person() {
+		cout << "析构函数!" << endl;
+    // 3.堆区的内存空间必须释放，不然出大问题！
+		if (m_height != NULL)
+		{
+			delete m_height;
+		}
+	}
+
+};
 
 
 
+void test01()
+{
+	Person p1(18, 180);
 
+	Person p2(p1);
+
+	cout << "p1的年龄： " << p1.m_age << " 身高： " << *p1.m_height << endl;
+
+	cout << "p2的年龄： " << p2.m_age << " 身高： " << *p2.m_height << endl;
+}
+
+int main() {
+
+	test01();
+
+	system("pause");
+
+	return 0;
+}
+```
 
 
 
@@ -1673,11 +1818,13 @@ int main() {
 
 **作用：**
 
-C++提供了初始化列表语法，用来初始化属性
+C++提供了初始化列表语法，用来初始化属性，比有参构造器简洁很多！！
 
 
 
 **语法：**`构造函数()：属性1(值1),属性2（值2）... {}`
+
+​			`Person(int a, int b, int c) :m_A(a), m_B(b), m_C(c) {}`
 
 
 
@@ -1688,14 +1835,15 @@ class Person {
 public:
 
 	////传统方式初始化
-	//Person(int a, int b, int c) {
-	//	m_A = a;
-	//	m_B = b;
-	//	m_C = c;
-	//}
+	Person(int a, int b, int c) {
+		m_A = a;
+		m_B = b;
+		m_C = c;
+	}
 
 	//初始化列表方式初始化
 	Person(int a, int b, int c) :m_A(a), m_B(b), m_C(c) {}
+  
 	void PrintPerson() {
 		cout << "mA:" << m_A << endl;
 		cout << "mB:" << m_B << endl;
@@ -1727,7 +1875,7 @@ int main() {
 
 
 
-C++类中的成员可以是另一个类的对象，我们称该成员为 对象成员
+C++类中的成员可以是另一个类的对象，我们称该成员为 **对象成员**
 
 
 
@@ -1735,13 +1883,12 @@ C++类中的成员可以是另一个类的对象，我们称该成员为 对象�
 
 ```C++
 class A {}
+
 class B
 {
-    A a；
+    A a；//类A的一个对象a
 }
 ```
-
-
 
 B类中有对象A作为成员，A为对象成员
 
@@ -1776,8 +1923,12 @@ public:
 class Person
 {
 public:
-
-	//初始化列表可以告诉编译器调用哪一个构造函数
+  
+	string m_Name;
+	Phone m_Phone;
+public:
+	// 其中 m_Phone(pName)讲道理数据类型是不对的，但编译器帮我们做了一个隐式转换
+  // m_Phone(pName)===>>> Phone m_Phone = pName;
 	Person(string name, string pName) :m_Name(name), m_Phone(pName)
 	{
 		cout << "Person构造" << endl;
@@ -1788,22 +1939,13 @@ public:
 		cout << "Person析构" << endl;
 	}
 
-	void playGame()
-	{
-		cout << m_Name << " 使用" << m_Phone.m_PhoneName << " 牌手机! " << endl;
-	}
-
-	string m_Name;
-	Phone m_Phone;
 
 };
 void test01()
 {
-	//当类中成员是其他类对象时，我们称该成员为 对象成员
-	//构造的顺序是 ：先调用对象成员的构造，再调用本类构造
-	//析构顺序与构造相反
+
 	Person p("张三" , "苹果X");
-	p.playGame();
+	cout << p.m_Name << " 使用" << p.m_Phone.m_PhoneName << " 牌手机! " << endl;
 
 }
 
@@ -1818,9 +1960,11 @@ int main() {
 }
 ```
 
+<img src="images/image-20221014115907400.png" alt="image-20221014115907400" style="zoom:80%;" />
 
+构造的顺序是 ：先调用对象成员的，再调用本类的（从里到外）
 
-
+析构顺序与构造相反
 
 
 
@@ -1830,19 +1974,24 @@ int main() {
 
 #### 4.2.8 静态成员
 
-静态成员就是在成员变量和成员函数前加上关键字static，称为静态成员
+**静态成员**就是在**成员变量**和**成员函数**前加上关键字static，称为静态成员
 
 静态成员分为：
 
 
 
-*  静态成员变量
+*  静态成员变量——类的东西
    *  所有对象共享同一份数据
-   *  在编译阶段分配内存
-   *  类内声明，类外初始化
-*  静态成员函数
+   
+   *  在编译阶段分配内存——全局区
+   
+   *  **必须只能类内声明，类外初始化**，他不能在类内赋值！！但所有的变量都需要初始化才行，所以他只能类外，其他变量都可以类内初始化。
+   
+      `int Person::m_A = 10;`
+   
+*  静态成员函数——类的东西
    *  所有对象共享同一个函数
-   *  静态成员函数只能访问静态成员变量
+   *  静态成员函数只能访问静态成员变量（静态的只能访问静态的）
 
 
 
@@ -1852,22 +2001,22 @@ int main() {
 
 **示例1 ：**静态成员变量
 
+访问方式：
+
+1. 通过对象访问：	`Person p1;	p1.m_A`
+2. 通过类名访问：    `Person::m_A`
+
 ```C++
 class Person
 {
-	
 public:
 
 	static int m_A; //静态成员变量
 
-	//静态成员变量特点：
-	//1 在编译阶段分配内存
-	//2 类内声明，类外初始化
-	//3 所有对象共享同一份数据
-
 private:
-	static int m_B; //静态成员变量也是有访问权限的
+	static int m_B; //私有静态成员变量也是类外初始化
 };
+// 类内声明，类外初始化
 int Person::m_A = 10;
 int Person::m_B = 10;
 
@@ -1906,31 +2055,32 @@ int main() {
 
 **示例2：**静态成员函数
 
+访问方式：
+
+1. 通过对象访问：	`Person p1;		p1.func();`
+2. 通过类名访问：    `Person::func();`
+
 ```C++
 class Person
 {
-
 public:
-
-	//静态成员函数特点：
-	//1 程序共享一个函数
-	//2 静态成员函数只能访问静态成员变量
-	
+	static int m_A; //静态成员变量
+	int m_B; 
+  
+public:
 	static void func()
 	{
-		cout << "func调用" << endl;
+		cout << "static void func 调用" << endl;
 		m_A = 100;
-		//m_B = 100; //错误，不可以访问非静态成员变量
+		m_B = 100; //错误，不可以访问非静态成员变量
 	}
 
-	static int m_A; //静态成员变量
-	int m_B; // 
 private:
-
-	//静态成员函数也是有访问权限的
+	//私有静态成员函数也是y
 	static void func2()
 	{
 		cout << "func2调用" << endl;
+    m_A = 100;
 	}
 };
 int Person::m_A = 10;
@@ -1947,9 +2097,9 @@ void test01()
 	//2、通过类名
 	Person::func();
 
-
 	//Person::func2(); //私有权限访问不到
 }
+
 
 int main() {
 
