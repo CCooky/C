@@ -433,7 +433,7 @@ int main() {
 
 
 
-**作用：**引用是可以作为函数的返回值存在的，**即返回内存空间的一个别名** （子函数里面这个内存空间是有名字的，就是那个局部变量，但这个局部变量在子函数结束了会被自动释放，相当于在释放前我们起了一个别名，指向这个内存空间了。
+**作用：**==链式编程！！！==引用是可以作为函数的返回值存在的，**即返回内存空间的一个别名** （子函数里面这个内存空间是有名字的，就是那个局部变量，但这个局部变量在子函数结束了会被自动释放，相当于在释放前我们起了一个别名，指向这个内存空间了。)
 
 
 
@@ -1992,6 +1992,7 @@ int main() {
 *  静态成员函数——类的东西
    *  所有对象共享同一个函数
    *  静态成员函数只能访问静态成员变量（静态的只能访问静态的）
+   *  和普通成员函数一样，既可以类内初始化也可以类外
 
 
 
@@ -2003,6 +2004,7 @@ int main() {
 
 访问方式：
 
+1. 类内声明，类外初始化：	`int Person::m_A = 10;`
 1. 通过对象访问：	`Person p1;	p1.m_A`
 2. 通过类名访问：    `Person::m_A`
 
@@ -2057,6 +2059,7 @@ int main() {
 
 访问方式：
 
+1. 就和普通成员函数一样类内类外均可以初始化： 类外初始化：`Person::func2(){ }`
 1. 通过对象访问：	`Person p1;		p1.func();`
 2. 通过类名访问：    `Person::func();`
 
@@ -2223,8 +2226,8 @@ c++通过提供特殊的对象指针，this指针，解决上述问题。**this�
 <img src="images/image-20221014174937520.png" alt="image-20221014174937520" style="zoom:80%;" />
 
 - this指针是隐含每一个非静态成员函数内的一种指针
-
 - this指针不需要定义，直接使用即可
+- this指针本质：**指针常量**，指针的执行不可以修改
 
 
 
@@ -2235,7 +2238,7 @@ c++通过提供特殊的对象指针，this指针，解决上述问题。**this�
 
 *  **当形参和成员变量同名时**，可用this指针来区分
 
-*  **在类的非静态成员函数中返回对象本身**，使用`return *this`，然后返回值为：`Person&`必须是引用形式。
+*  **在类的非静态成员函数中返回对象本身**，使用`return *this`，然后返回值为：`Person&`必须是引用形式。不引用返回的话，函数执行完结果返回的就是一个新的对象，就不是之前p2了
 
    因为this指向的是这个对象嘛，*this就是解引用，就可以获得p1对象了**（链式编程的时候必用）**
 
@@ -2286,7 +2289,7 @@ int main() {
 
 
 
-C++中空指针也是可以调用成员函数的，但是也要注意有没有用到this指针
+C++中空指针也是可以调用成员函数的，但是也要注意**有没有用到this指针**
 
 
 
@@ -2347,16 +2350,27 @@ int main() {
 
 **常函数：**
 
-* 成员函数后加const后我们称为这个函数为**常函数**
-* 常函数内不可以修改成员属性
-* 成员属性声明时加关键字mutable后，在常函数中依然可以修改
+* 成员函数后加const后我们称为这个函数为常函数`void ShowPerson() const {}`
+
+* 常函数内**不可以修改**成员属性
+
+* 成员属性声明时加关键字**mutable**后，在常函数中依然**可以修改**
+
+  
+
+> this指针的本质是一个指针常量，指向对象，指针的指向不可修改；
+>
+> 在成员函数后加const，实际修饰的是this指针，让指针指向的值也不可修改。也就是成员变量。
+
+
 
 
 
 **常对象：**
 
-* 声明对象前加const称该对象为常对象
-* 常对象只能调用常函数
+* 声明对象前加const称该对象为常对象  `const Person person;`
+* 常对象===>>>>只能调用**常函数**
+* 常对象===>>>>不能修改**成员变量**的值, 但是可以访问，可以改**mutable**
 
 
 
@@ -2374,19 +2388,19 @@ public:
 		m_B = 0;
 	}
 
-	//this指针的本质是一个指针常量，指针的指向不可修改
-	//如果想让指针指向的值也不可以修改，需要声明常函数
+	// this指针的本质是一个指针常量，指针的指向不可修改
+	// 在成员函数后加const，实际修饰的是this指针，让指针指向的值也不可修改
 	void ShowPerson() const {
-		//const Type* const pointer;
-		//this = NULL; //不能修改指针的指向 Person* const this;
-		//this->mA = 100; //但是this指针指向的对象的数据是可以修改的
+        
+		this = NULL; // 不能修改指针的指向 Person* const this;
+		this->mA = 100; // 加了const后，this指针指向的对象的数据是不可以修改
 
-		//const修饰成员函数，表示指针指向的内存空间的数据不能修改，除了mutable修饰的变量
+		//但是const修饰成员函数，mutable修饰的成员变量可以修改
 		this->m_B = 100;
 	}
 
 	void MyFunc() const {
-		//mA = 10000;
+		//mA = 10000;  不可修改
 	}
 
 public:
@@ -2395,16 +2409,16 @@ public:
 };
 
 
-//const修饰对象  常对象
+
 void test01() {
 
 	const Person person; //常量对象  
 	cout << person.m_A << endl;
-	//person.mA = 100; //常对象不能修改成员变量的值,但是可以访问
+	person.mA = 100; //常对象不能修改成员变量的值,但是可以访问
 	person.m_B = 100; //但是常对象可以修改mutable修饰成员变量
 
 	//常对象访问成员函数
-	person.MyFunc(); //常对象不能调用const的函数
+	person.MyFunc(); //常对象只能调用const的函数
 
 }
 
@@ -2441,7 +2455,7 @@ int main() {
 
 
 
-友元的目的就是让一个函数或者类 访问另一个类中私有成员
+**友元的目的就是让一个函数或者类 访问另一个类中私有成员**
 
 
 
@@ -2461,11 +2475,16 @@ int main() {
 
 #### 4.4.1 全局函数做友元
 
+> 类中：friend void goodGay(const Building& building);
+>
+> 全局函数：void goodGay(const Building& building) {}
+
 ```C++
+//1. 
 class Building
 {
 	//告诉编译器 goodGay全局函数 是 Building类的好朋友，可以访问类中的私有内容
-	friend void goodGay(Building * building);
+	friend void goodGay(const Building& building);
 
 public:
 
@@ -2483,23 +2502,19 @@ private:
 	string m_BedRoom; //卧室
 };
 
-
-void goodGay(Building * building)
+//2. 全局函数做友元
+void goodGay(const Building& building)// 引用接收或指针接收
 {
-	cout << "好基友正在访问： " << building->m_SittingRoom << endl;
-	cout << "好基友正在访问： " << building->m_BedRoom << endl;
+	cout << "好基友全局函数访问：" <<building.m_SittingRoom<< endl;
+	cout << "好基友全局函数访问：" << building.m_BedRoom << endl;
 }
 
 
-void test01()
-{
-	Building b;
-	goodGay(&b);
-}
 
 int main(){
 
-	test01();
+	Building building;
+	goodGay(building);
 
 	system("pause");
 	return 0;
@@ -2512,27 +2527,25 @@ int main(){
 
 
 
+> 类中的所有成员变量、函数都可以访问那个类的私有内容！
+>
+> friend class goodGay;
+
 ```C++
-class Building;
-class goodGay
-{
-public:
+class Building; //提前声明类，不让编辑器报错
 
-	goodGay();
-	void visit();
-
-private:
-	Building *building;
-};
-
-
+//1. 
 class Building
 {
 	//告诉编译器 goodGay类是Building类的好朋友，可以访问到Building类中私有内容
 	friend class goodGay;
 
 public:
-	Building();
+	Building()
+	{
+		this->m_SittingRoom = "客厅";
+		this->m_BedRoom = "卧室";
+	}
 
 public:
 	string m_SittingRoom; //客厅
@@ -2540,33 +2553,34 @@ private:
 	string m_BedRoom;//卧室
 };
 
-Building::Building()
-{
-	this->m_SittingRoom = "客厅";
-	this->m_BedRoom = "卧室";
-}
 
-goodGay::goodGay()
+//2. 类做友元
+class goodGay
 {
-	building = new Building;
-}
+public:
 
-void goodGay::visit()
-{
-	cout << "好基友正在访问" << building->m_SittingRoom << endl;
-	cout << "好基友正在访问" << building->m_BedRoom << endl;
-}
+	goodGay()
+    {
+		this->building = new Building; 
+        //在堆内创建一个对象，返回对象的指针，并且调用了Building的构造函数
+	}
+	void visit(){
+    	// 这里属于友元类的成员变量访问：类的私有内容。
+		cout << "好基友正在访问" << building->m_SittingRoom << endl;
+		cout << "好基友正在访问" << building->m_BedRoom << endl;
+    }
 
-void test01()
-{
-	goodGay gg;
-	gg.visit();
+private:
+	Building *building;
+};
 
-}
+
+
 
 int main(){
 
-	test01();
+	goodGay gg;
+	gg.visit();
 
 	system("pause");
 	return 0;
@@ -2579,7 +2593,8 @@ int main(){
 
 #### 4.4.3 成员函数做友元
 
-
+> friend void goodGay::visit();
+>
 
 ```C++
 
@@ -2662,7 +2677,7 @@ int main(){
 
 
 
-运算符重载概念：对已有的运算符重新进行定义，赋予其另一种功能，以适应不同的数据类型
+运算符重载概念：对已有的运算符重新进行定义，赋予其另一种功能，以适应不同的数据类型。可以使用函数重载。
 
 
 
@@ -2670,9 +2685,17 @@ int main(){
 
 
 
-作用：实现两个自定义数据类型相加的运算
+**作用：**实现两个自定义数据类型相加的运算
 
+1、成员函数实现+号重载：
 
+<img src="images/image-20221017162930498.png" alt="image-20221017162930498" style="zoom:80%;" />
+
+2、全局函数实现+重载：
+
+<img src="images/image-20221017163029420.png" alt="image-20221017163029420" style="zoom:80%;" />
+
+**注意：**上面两种对+号运算符重载的简化调用方式是一样的，也就是两个不能同时存在。只能留一个。
 
 ```C++
 class Person {
@@ -2698,12 +2721,13 @@ public:
 };
 
 //全局函数实现 + 号运算符重载
-//Person operator+(const Person& p1, const Person& p2) {
-//	Person temp(0, 0);
-//	temp.m_A = p1.m_A + p2.m_A;
-//	temp.m_B = p1.m_B + p2.m_B;
-//	return temp;
-//}
+//（这个和Person里面的重载函数只能留一个哦，因为他们的简化调用方式一模一样！！）
+Person operator+(const Person& p1, const Person& p2) {
+	Person temp(0, 0);
+	temp.m_A = p1.m_A + p2.m_A;
+	temp.m_B = p1.m_B + p2.m_B;
+	return temp;
+}
 
 //运算符重载 可以发生函数重载 
 Person operator+(const Person& p2, int val)  
@@ -2720,10 +2744,10 @@ void test() {
 	Person p2(20, 20);
 
 	//成员函数方式
-	Person p3 = p2 + p1;  //相当于 p2.operaor+(p1)
+	Person p3 = p2 + p1;  //相当于 p2.operaor+(p1)；如果用的全局就是operaor+(p2,p1)
 	cout << "mA:" << p3.m_A << " mB:" << p3.m_B << endl;
 
-
+	//全局
 	Person p4 = p3 + 10; //相当于 operator+(p3,10)
 	cout << "mA:" << p4.m_A << " mB:" << p4.m_B << endl;
 
@@ -2755,12 +2779,25 @@ int main() {
 
 
 
-作用：可以输出自定义数据类型
+**作用：**可以输出自定义数据类型。指的是cout后面的<<这个运算符。这个只能通过==全局函数==实现！
 
+<img src="images/image-20221017163942038.png" alt="image-20221017163942038" style="zoom:80%;" />
 
+```c++
+// 固定写法；cout是一个ostream对象，且只能有一个
+// 一定要返回其引用值哦！！！！链式编程
+ostream& operator<<(ostream& cout, Person& p) {
+	cout << "a:" << p.m_A << " b:" << p.m_B;
+	return cout;
+}
+
+// 然后，friend这种写法很好哦，这样输出的时候，不用调用set、get方法麻烦
+friend ostream& operator<<(ostream& out, Person& p);
+```
 
 ```C++
 class Person {
+    // 访问类的私有属性！！！
 	friend ostream& operator<<(ostream& out, Person& p);
 
 public:
@@ -2772,31 +2809,32 @@ public:
 	}
 
 	//成员函数 实现不了  p << cout 不是我们想要的效果
-	//void operator<<(Person& p){
-	//}
+    // 第一种：p1.operator<<(p2) 这样肯定不对
+	void operator<<(Person& p){
+	}
+    //第二种：那我写一个cout给形参==>>>> p1.operator<<(cout) 简化：p<<cout 也不对啊cout在左边
+    void operator<<(cout){
+	}
+    
 
 private:
 	int m_A;
 	int m_B;
 };
 
-//全局函数实现左移重载
-//ostream对象只能有一个
-ostream& operator<<(ostream& out, Person& p) {
-	out << "a:" << p.m_A << " b:" << p.m_B;
-	return out;
+// 全局函数实现左移重载
+// cout是一个ostream对象，且只能有一个，operator<<(cout,p) 简化：cout<<p
+ostream& operator<<(ostream& cout, Person& p) {
+	cout << "a:" << p.m_A << " b:" << p.m_B;
+	return cout;
 }
 
-void test() {
-
-	Person p1(10, 20);
-
-	cout << p1 << "hello world" << endl; //链式编程
-}
 
 int main() {
 
-	test();
+	Person p1(10, 20);
+
+	cout << p1 << "hello world" << endl; //链式编程！！！！！！！！！！！！！！！！
 
 	system("pause");
 
@@ -2824,12 +2862,14 @@ int main() {
 
 
 
-作用： 通过重载递增运算符，实现自己的整型数据
+作用： 通过重载递增运算符，实现自己的**整型数据**
 
+<img src="images/image-20221017185336569.png" alt="image-20221017185336569"  />
 
+> 总结： 前置递增返回引用，后置递增返回值
+>
 
 ```C++
-
 class MyInteger {
 
 	friend ostream& operator<<(ostream& out, MyInteger myint);
@@ -2840,16 +2880,14 @@ public:
 	}
 	//前置++
 	MyInteger& operator++() {
-		//先++
 		m_Num++;
-		//再返回
 		return *this;
 	}
 
 	//后置++
 	MyInteger operator++(int) {
-		//先返回
-		MyInteger temp = *this; //记录当前本身的值，然后让本身的值加1，但是返回的是以前的值，达到先返回后++；
+        //建立了一个新对象记录当前本身的值，然后让本身的值加1，但是返回的是新对象，达到先返回后++；
+		MyInteger temp = *this; 
 		m_Num++;
 		return temp;
 	}
@@ -2893,8 +2931,6 @@ int main() {
 
 
 
-> 总结： 前置递增返回引用，后置递增返回值
-
 
 
 
@@ -2911,7 +2947,7 @@ int main() {
 
 
 
-c++编译器至少给一个类添加4个函数
+**c++编译器至少给一个类添加4个函数：**
 
 1. 默认构造函数(无参，函数体为空)
 2. 默认析构函数(无参，函数体为空)
@@ -2922,13 +2958,63 @@ c++编译器至少给一个类添加4个函数
 
 
 
-如果类中有属性指向堆区，做赋值操作时也会出现深浅拷贝问题
+如果类中有属性指向堆区，做赋值操作时也会出现深浅拷贝问题！！！同样是重复释放内存问题
 
 
 
+**问题代码示例：**
+
+```c++
+class Person
+{
+public:
+	//年龄的指针
+	int* m_Age;
+
+	Person(int age)
+	{
+		//将年龄数据开辟到堆区
+		m_Age = new int(age);
+	}
+
+	~Person()
+	{
+		if (m_Age != NULL)
+		{
+			delete m_Age;
+			m_Age = NULL;
+		}
+	}
+
+};
+
+void test01() {
+	Person p1(18);
+	Person p2(22);
+	p2 = p1;
+	cout << "p1的年龄为：" << *p1.m_Age << endl;
+	cout << "p1的年龄为：" << *p2.m_Age << endl;
+}
+
+int main() {
+	test01();
 
 
-**示例：**
+
+	system("pause");
+	return 1;
+}
+```
+
+<img src="images/image-20221017192545179.png" alt="image-20221017192545179" style="zoom: 50%;" />
+
+分析：浅拷贝只是简单赋值，出现两个指针指向同一个堆区内存的情况，堆区需要手动释放，则出现重复释放问题！！
+
+<img src="images/image-20221017192842676.png" alt="image-20221017192842676"  />
+
+
+
+**完整代码示例：**
 
 ```C++
 class Person
@@ -2942,21 +3028,17 @@ public:
 	}
 
 	//重载赋值运算符 
-	Person& operator=(Person &p)
-	{
+	Person& operator=(Person& p) {
+		// 1.应该先判断对象是否有属性在堆区，有的话先释放掉
 		if (m_Age != NULL)
 		{
 			delete m_Age;
 			m_Age = NULL;
 		}
-		//编译器提供的代码是浅拷贝
-		//m_Age = p.m_Age;
-
-		//提供深拷贝 解决浅拷贝的问题
+		//2. 深拷贝
 		m_Age = new int(*p.m_Age);
-
-		//返回自身
 		return *this;
+
 	}
 
 
@@ -2996,14 +3078,6 @@ int main() {
 
 	test01();
 
-	//int a = 10;
-	//int b = 20;
-	//int c = 30;
-
-	//c = b = a;
-	//cout << "a = " << a << endl;
-	//cout << "b = " << b << endl;
-	//cout << "c = " << c << endl;
 
 	system("pause");
 
@@ -3104,6 +3178,8 @@ int main() {
 	return 0;
 }
 ```
+
+
 
 
 
