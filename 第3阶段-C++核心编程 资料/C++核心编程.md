@@ -1308,7 +1308,7 @@ int main() {
 
 **拷贝构造：**
 
-​		就是把另一个对象拷贝过来，必须是const修饰，防止传递进来的对象被修改，除此必须是引用的形式接收）
+​		就是把另一个对象拷贝过来，必须是==const修饰==，防止传递进来的对象被修改，而且必须是==引用的形式==接收
 
 **匿名对象：**
 
@@ -2127,40 +2127,76 @@ int main() {
 
 
 
-在C++中，类内的成员变量和成员函数分开存储
+在C++中，类内的**成员变量和成员函数分开存储;**
 
-只有非静态成员变量才属于类的对象上
+只有**非静态成员变量**====>>>才属于**类的对象**上;
 
 
+
+**1、空对象的内存大小——1**
+
+空对象占用内存空间为：1。C++编译器会给每个空对象分配一个字节的空间，目的是为了区分多个空对象在内存里面的位置,不然无法区分多个空对象，仅此而已。假如有一个int属性，那么对象大小就是4哦，C++就不会再多分一个字节的空间了，因为已经可以区分不同对象了。
 
 ```C++
 class Person {
-public:
-	Person() {
-		mA = 0;
-	}
-	//非静态成员变量占对象空间
-	int mA;
-	//静态成员变量不占对象空间
-	static int mB; 
-	//函数也不占对象空间，所有函数共享一个函数实例
-	void func() {
-		cout << "mA:" << this->mA << endl;
-	}
-	//静态成员函数也不占对象空间
-	static void sfunc() {
-	}
+
 };
+void test01() {
+	Person p;
+	cout << "size of p = " <<sizeof(p) << endl; //结果为1
+	// 空对象占用内存空间为：1
+	// C++编译器会给每个空对象分配一个字节的空间，目的是为了区分多个空对象
+	// 在内存里面的位置,不然无法区分多个空对象，仅此而已
+}
 
 int main() {
 
-	cout << sizeof(Person) << endl;
+	test01();
+
 
 	system("pause");
-
-	return 0;
+	return 1;
 }
 ```
+
+**2、各种属性与对象的关系**
+
+我们根据查看内存来看，各种成员变量成员函数与对象的关系。
+
+成员变量和成员函数分开存储;
+
+```c++
+class Person {
+
+	int m_A;			// 非静态成员变量	属于类的对象
+
+	static int m_B;		// 静态成员变量  不属于类的对象
+
+	void func() {};		// 非静态成员函数  不属于类的对象
+
+	static void func2() {};  // 静态成员函数  不属于类的对象
+
+};
+int Person::m_B = 10;
+
+
+void test02() {
+	Person p;
+	cout << "size of p = " << sizeof(p) << endl;  //===> 4
+} 
+
+int main() {
+
+	test02();
+
+	system("pause");
+	return 1;
+}
+```
+
+**可以看出：仅仅非静态成员变量才属于对象。**
+
+疑问来了：为什么成员函数也不属于类呢，那我多个对象调用函数的时候，函数是怎么区分是哪个对象在调用呢？====》》》this指针的作用
 
 
 
@@ -2172,65 +2208,69 @@ int main() {
 
 通过4.3.1我们知道在C++中成员变量和成员函数是分开存储的
 
-每一个非静态成员函数只会诞生一份函数实例，也就是说多个同类型的对象会共用一块代码
+**每一个非静态成员函数只会诞生一份函数实例，也就是说多个同类型的对象会共用一块代码**
 
 那么问题是：这一块代码是如何区分那个对象调用自己的呢？
 
 
 
+
+
 c++通过提供特殊的对象指针，this指针，解决上述问题。**this指针指向被调用的成员函数所属的对象**
 
+> 方框就是成员函数，谁调用这个函数，函数的this指针就指向谁！！！
+
+<img src="images/image-20221014174937520.png" alt="image-20221014174937520" style="zoom:80%;" />
+
+- this指针是隐含每一个非静态成员函数内的一种指针
+
+- this指针不需要定义，直接使用即可
 
 
-this指针是隐含每一个非静态成员函数内的一种指针
-
-this指针不需要定义，直接使用即可
 
 
 
-this指针的用途：
 
-*  当形参和成员变量同名时，可用this指针来区分
-*  在类的非静态成员函数中返回对象本身，可使用return *this
+**this指针的用途：**
+
+*  **当形参和成员变量同名时**，可用this指针来区分
+
+*  **在类的非静态成员函数中返回对象本身**，使用`return *this`，然后返回值为：`Person&`必须是引用形式。
+
+   因为this指向的是这个对象嘛，*this就是解引用，就可以获得p1对象了**（链式编程的时候必用）**
 
 ```C++
-class Person
-{
+class Person {
 public:
+	int age;
 
-	Person(int age)
-	{
-		//1、当形参和成员变量同名时，可用this指针来区分
+	//1. 当形参和成员变量同名时，可用this指针来区分
+	Person(int age) {
+		// this指针指向被调用的成员函数所属的对象—p1
 		this->age = age;
 	}
 
-	Person& PersonAddPerson(Person p)
-	{
+	//2.在类的非静态成员函数中返回对象本身
+	Person& PersonAdd(const Person& p) { 
 		this->age += p.age;
-		//返回对象本身
 		return *this;
 	}
-
-	int age;
+	//注意：返回值必须是引用哦
+	//不引用返回的话，函数执行完结果返回的就是一个新的对象，就不是之前p2了
 };
 
-void test01()
-{
-	Person p1(10);
-	cout << "p1.age = " << p1.age << endl;
-
-	Person p2(10);
-	p2.PersonAddPerson(p1).PersonAddPerson(p1).PersonAddPerson(p1);
-	cout << "p2.age = " << p2.age << endl;
-}
 
 int main() {
 
-	test01();
+	Person p1(10);// p对象在调用有参构造函数，所以里面的this指向p1
+	cout << "p1.age = " << p1.age << endl;
+	
+	Person p2(10);
+	p2.PersonAdd(p1).PersonAdd(p1);
+	cout << "p2.age = " << p2.age << endl;
 
 	system("pause");
-
-	return 0;
+	return 1;
 }
 ```
 
