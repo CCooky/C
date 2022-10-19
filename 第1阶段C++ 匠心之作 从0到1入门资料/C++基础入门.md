@@ -2522,11 +2522,12 @@ int max(int a, int b)
 
 
 
-**示例：**
+**示例1：**
 
 ```C++
 //swap.h文件
 
+#pragma once  //防止头文件重复包含
 #include<iostream>
 using namespace std;
 
@@ -2574,6 +2575,68 @@ int main() {
 
 
 
+
+**示例2：**
+
+在workerManager.h中设计管理类
+
+代码如下：
+
+```c++
+#pragma once  //防止头文件重复包含
+#include<iostream>
+using namespace std;
+
+class WorkerManager {
+public:
+
+	WorkerManager();
+
+	//展示菜单
+	void show_Menu();
+
+	~WorkerManager();
+
+};
+```
+
+在workerManager.cpp中将构造和析构函数空实现补全
+
+```c++
+#include "workerManager.h"
+
+WorkerManager::WorkerManager() {
+
+}
+
+void WorkerManager::show_Menu()
+{
+}
+
+WorkerManager::~WorkerManager() {
+
+}
+```
+
+main文件：
+
+```c++
+#include<iostream>
+using namespace std;
+#include"workerManager.h"
+
+
+int main() {
+
+	WorkerManager wm;
+
+	wm.show_Menu();
+  
+  
+	system("pause");
+	return 1;
+}
+```
 
 
 
