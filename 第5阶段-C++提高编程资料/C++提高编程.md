@@ -665,14 +665,22 @@ int main() {
 类模板作用：
 
 * 建立一个通用类，类中的成员 数据类型可以不具体制定，用一个**虚拟的类型**来代表。
+* 必须手动指定数据类型，无自动类型推导
 
 
 
 **语法：** 
 
 ```c++
-template<typename T>
+template<class T, class E>
 类
+
+template<class NameType, class AgeType> 
+template<class NameType, class AgeType = int> 
+
+// 可以有多个数据类型
+// 使用时，手动指定，就是Java的那个泛型了，
+Person<string, int> P1("孙悟空", 999);
 ```
 
 **解释：**
@@ -710,8 +718,9 @@ public:
 
 void test01()
 {
-	// 指定NameType 为string类型，AgeType 为 int类型
+	// 手动去指定NameType 为string类型，AgeType 为 int类型
 	Person<string, int>P1("孙悟空", 999);
+    
 	P1.showPerson();
 }
 
@@ -725,7 +734,7 @@ int main() {
 }
 ```
 
-总结：类模板和函数模板语法相似，在声明模板template后面加类，此类称为类模板
+
 
 
 
@@ -743,8 +752,8 @@ int main() {
 
 类模板与函数模板区别主要有两点：
 
-1. 类模板没有自动类型推导的使用方式
-2. 类模板在模板参数列表中可以有默认参数
+1. 类模板**没有自动类型推导**的使用方式
+2. 类模板在模板参数列表中可以有**默认参数**
 
 
 
@@ -799,10 +808,7 @@ int main() {
 }
 ```
 
-总结：
 
-* 类模板使用只能用显示指定类型方式
-* 类模板中的模板参数列表可以有默认参数
 
 
 
@@ -818,10 +824,10 @@ int main() {
 
 
 
-类模板中成员函数和普通类中成员函数创建时机是有区别的：
+**类模板**中成员函数和**普通类**中成员函数创建时机是有区别的：
 
-* 普通类中的成员函数一开始就可以创建
-* 类模板中的成员函数在调用时才创建
+* 普通类中的成员函数**一开始**就可以创建，成员函数与属性是单独分开存储的哦，并且函数只有一份
+* 类模板中的成员函数在**调用时**才创建
 
 
 
@@ -855,7 +861,7 @@ public:
 	T obj;
 
 	//类模板中的成员函数，并不是一开始就创建的，而是在模板调用时再生成
-
+    // 就是说：按理说这部分代码是编译不通的啊！！！！发现了没有
 	void fun1() { obj.showPerson1(); }
 	void fun2() { obj.showPerson2(); }
 
@@ -880,7 +886,7 @@ int main() {
 }
 ```
 
-总结：类模板中的成员函数并不是一开始就创建的，在调用时才去创建
+
 
 
 
@@ -900,9 +906,13 @@ int main() {
 
 一共有三种传入方式：
 
-1. 指定传入的类型   --- 直接显示对象的数据类型
-2. 参数模板化           --- 将对象中的参数变为模板进行传递
-3. 整个类模板化       --- 将这个对象类型 模板化进行传递
+1. 指定传入的类型   --- 直接显示对象的数据类型（广泛）
+
+2. **参数模板化**           --- 将对象中的参数变为模板进行传递（这种感觉好一点啊肯定）
+
+3. 整个类模板化       --- 将这个对象类型 模板化进行传递，类似于Object可以接收任意对象类型
+
+   ​                                                                                                            （这个太抽象了很少用）
 
 
 
@@ -942,9 +952,9 @@ void test01()
 	printPerson1(p);
 }
 
-//2、参数模板化
+//2、参数模板化（这种感觉好一点啊肯定）
 template <class T1, class T2>
-void printPerson2(Person<T1, T2>&p)
+void printPerson2(Person<T1, T2>& p)
 {
 	p.showPerson();
 	cout << "T1的类型为： " << typeid(T1).name() << endl;
@@ -1001,7 +1011,7 @@ int main() {
 
 当类模板碰到继承时，需要注意一下几点：
 
-* 当子类继承的父类是一个类模板时，子类在声明的时候，要指定出父类中T的类型
+* 当子类继承的父类是一个类模板时，子类在声明的时候，要**指定**出父类中T的类型
 * 如果不指定，编译器无法给子类分配内存
 * 如果想灵活指定出父类中T的类型，子类也需变为类模板
 
@@ -1017,7 +1027,7 @@ class Base
 	T m;
 };
 
-//class Son:public Base  //错误，c++编译需要给子类分配内存，必须知道父类中T的类型才可以向下继承
+class Son:public Base  //错误，c++编译需要给子类分配内存，必须知道父类中T的类型才可以向下继承
 class Son :public Base<int> //必须指定一个类型
 {
 };
@@ -1066,11 +1076,32 @@ int main() {
 
 
 
-#### 1.3.6 类模板成员函数类外实现
+#### 1.3.6 类模板成员函数，类外实现
 
 
 
-学习目标：能够掌握类模板中的成员函数类外实现
+学习目标：能够掌握类模板中的成员函数类外实现。
+
+类模板中成员函数类外实现时，需要**加上**模板参数列表`<T1, T2>`，才可以体现出这是类模板的成员函数
+
+
+
+```c++
+template<class T1, class T2>
+Person<T1, T2>::Person(T1 name, T2 age) {
+	this->m_Name = name;
+	this->m_Age = age;
+}
+
+Person::Person(string name,int age){
+    this->m_Name = name;
+	this->m_Age = age;
+}
+```
+
+
+
+
 
 
 
@@ -1139,22 +1170,28 @@ int main() {
 
 
 
-问题：
-
-* 类模板中成员函数创建时机是在调用阶段，导致分文件编写时链接不到
 
 
-解决：
+**问题：**
 
-* 解决方式1：直接包含.cpp源文件
-* 解决方式2：将声明和实现写到同一个文件中，并更改后缀名为.hpp，hpp是约定的名称，并不是强制
+* 类模板中成员函数创建时机是在调用阶段，导致分文件编写时链接不到。
+
+  也就是我们main文件里面创建Person对象嘛，头文件已经被包含`#include<person.h>`，但是由于类模板的成员函数是在调用的时候才回去创建，所以我们c++编译器刚开始不会报错，但运行的时候会报错，因为他不能自己找到`person.cpp`里面的成员函数的实现，c++编译器永远看不到我们在`person.cpp`里面的代码。也就是分文件编写时`person.h`和`person.cpp`链接不到。
 
 
 
 
-**示例：**
 
-person.hpp中代码：
+**解决：**
+
+* 解决方式1：直接包含.cpp源文件（这种直接看到实现代码的不得行，不规范）
+* **解决方式2：**将声明和实现写到同一个文件中，并更改后缀名为.hpp，hpp是约定的名称，大家都是这样用的，并不是强制**（用这种）！！！！**
+
+
+
+**方式2示例：**
+
+person.hpp中代码：（写在头文件夹下）
 
 ```C++
 #pragma once
@@ -1188,17 +1225,22 @@ void Person<T1, T2>::showPerson() {
 
 
 
-类模板分文件编写.cpp中代码
+
+
+main.cpp文件内容：
 
 ```C++
 #include<iostream>
 using namespace std;
 
+//解决方式1，包含cpp源文件
 //#include "person.h"
-#include "person.cpp" //解决方式1，包含cpp源文件
+#include "person.cpp" 
 
 //解决方式2，将声明和实现写到一起，文件后缀名改为.hpp
 #include "person.hpp"
+
+
 void test01()
 {
 	Person<string, int> p("Tom", 10);
@@ -1235,50 +1277,84 @@ int main() {
 
 
 
-全局函数类内实现 - 直接在类内声明友元即可
+全局函数**类内实现** - 直接在类内声明友元即可
 
-全局函数类外实现 - 需要提前让编译器知道全局函数的存在
+全局函数**类外实现** - 需要提前让编译器知道全局函数的存在（**很麻烦，一般不用）**
 
 
 
-**示例：**
+**示例：1、类内实现**
+
+> （在成员函数前+frined，这个函数就会变成全局函数）
+
+```c++
+ 
+template<class T1,class T2>
+ class Person {
+ public:
+
+	 //1. 全局函数 类内实现（在成员函数前+frined，这个函数就会变成全局函数）
+	 friend void printPerson(Person<T1, T2> p) {
+		 cout << "姓名： " << p.m_Name << " 年龄：" << p.m_Age << endl;
+	 }
+
+	 Person(T1 name, T2 age) {
+		 this->m_Name = name;
+		 this->m_Age = age;
+	 }
+
+ private:
+	 T1 m_Name;
+	 T2 m_Age;
+ };
+
+
+ void test01() {
+	 Person<string, int> p("abc",20);
+	 printPerson(p);
+ }
+
+
+int main() {
+
+	test02();
+	system("pause");
+	return 1;
+}
+```
+
+
+
+
+
+**示例2：全局函数写在类外**
 
 ```C++
 #include <string>
 
-//2、全局函数配合友元  类外实现 - 先做函数模板声明，下方在做函数模板定义，在做友元
+// 在全局函数声明前，又要提前声明这个Person，不然找不到
 template<class T1, class T2> class Person;
 
 //如果声明了函数模板，可以将实现写到后面，否则需要将实现体写到类的前面让编译器提前看到
-//template<class T1, class T2> void printPerson2(Person<T1, T2> & p); 
+template<class T1, class T2> void printPerson2(Person<T1, T2> & p); 
 
-template<class T1, class T2>
-void printPerson2(Person<T1, T2> & p)
-{
-	cout << "类外实现 ---- 姓名： " << p.m_Name << " 年龄：" << p.m_Age << endl;
-}
+
 
 template<class T1, class T2>
 class Person
 {
-	//1、全局函数配合友元   类内实现
-	friend void printPerson(Person<T1, T2> & p)
-	{
-		cout << "姓名： " << p.m_Name << " 年龄：" << p.m_Age << endl;
-	}
-
-
-	//全局函数配合友元  类外实现
+	//2. 类外的全局函数，在类内声明一下这是友元。
 	friend void printPerson2<>(Person<T1, T2> & p);
+    friend void printPerson2(Person<T1, T2> p); //error
+    //这是一个普通函数的声明。但下面是一个模板函数的实现，所以上面这样写是错的
+    // 因为实现写在后面，编译器没有提前知道，所以需要提前声明
 
 public:
-
 	Person(T1 name, T2 age)
 	{
 		this->m_Name = name;
 		this->m_Age = age;
 	}
-
 
 private:
 	T1 m_Name;
@@ -1286,11 +1362,11 @@ private:
 
 };
 
-//1、全局函数在类内实现
-void test01()
+// 2. 类外的全局函数在这里
+template<class T1, class T2>
+void printPerson2(Person<T1, T2> & p)
 {
-	Person <string, int >p("Tom", 20);
-	printPerson(p);
+	cout << "类外实现 ---- 姓名： " << p.m_Name << " 年龄：" << p.m_Age << endl;
 }
 
 
@@ -1301,14 +1377,12 @@ void test02()
 	printPerson2(p);
 }
 
+
 int main() {
 
-	//test01();
-
 	test02();
-
+    
 	system("pause");
-
 	return 0;
 }
 ```
@@ -1332,9 +1406,9 @@ int main() {
 
 
 * 可以对内置数据类型以及自定义数据类型的数据进行存储
-* 将数组中的数据存储到堆区
+* 将数组中的数据**存储到堆区**
 * 构造函数中可以传入数组的容量
-* 提供对应的拷贝构造函数以及operator=防止浅拷贝问题
+* 提供对应的拷贝构造函数以及**operator=防止浅拷贝**问题
 * 提供尾插法和尾删法对数组中的数据进行增加和删除
 * 可以通过下标的方式访问数组中的元素
 * 可以获取数组中当前元素个数和数组的容量
@@ -1343,13 +1417,21 @@ int main() {
 
 
 
+**思路：**
+
+<img src="images/image-20221020140122701.png" alt="image-20221020140122701" style="zoom:80%;" />
+
+
+
+
+
 **示例：**
 
-myArray.hpp中代码
+**myArray.hpp**中代码
 
 ```C++
 #pragma once
-#include <iostream>
+#include <iostream> 
 using namespace std;
 
 template<class T>
@@ -1458,7 +1540,7 @@ private:
 
 
 
-类模板案例—数组类封装.cpp中
+类模板案例—**数组类封装.cpp**中
 
 ```C++
 #include "myArray.hpp"
@@ -1554,6 +1636,8 @@ int main() {
 总结：
 
 能够利用所学知识点实现通用的数组
+
+
 
 
 
